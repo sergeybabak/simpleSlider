@@ -127,12 +127,13 @@ class Slider {
             this.swipeThreshold = 50;
             this.isDragging = false;
 
-            this.slider.addEventListener('pointerdown', (e) => {
+            this.swipeDown = (e) => {
                 this.isDragging = true;
                 this.startX = e.clientX;
-            });
+            };
+            this.slider.addEventListener('pointerdown', this.swipeDown);
 
-            this.slider.addEventListener('pointerup', (e) => {
+            this.swipeUp = (e) => {
                 if (!this.isDragging) return;
 
                 const diff = this.startX - e.clientX;
@@ -141,18 +142,25 @@ class Slider {
                 if (Math.abs(diff) > this.swipeThreshold) {
                     diff > 0 ? this.moveItems('prev') : this.moveItems('next');
                 }
-            });
+            };
+            this.slider.addEventListener('pointerup', this.swipeUp);
         }
     };
 
     destroy() {
         this.track.removeAttribute('style');
 
-        this.next.removeEventListener('click', this.nextEvent);
-        this.prev.removeEventListener('click', this.prevEvent);
+        this.next?.removeEventListener('click', this.nextEvent);
+        this.prev?.removeEventListener('click', this.prevEvent);
 
         this.nextEvent = null;
         this.prevEvent = null;
+
+        this.slider?.removeEventListener('pointerup', this.swipeUp);
+        this.slider?.removeEventListener('pointerdown', this.swipeDown);
+
+        this.swipeUp = null;
+        this.swipeDown = null;
     }
 }
 
