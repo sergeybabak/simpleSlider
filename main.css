@@ -6,14 +6,13 @@
     margin-top: 80px;
     width: 100%;
     overflow: hidden;
-    /* touch-action: pan-y; */
 }
 
 .gallery-container {
     align-items: center;
     display: flex;
     gap: 30px;
-    touch-action: pan-y;
+    /* touch-action: pan-y; */
 }
 
 .gallery-item {

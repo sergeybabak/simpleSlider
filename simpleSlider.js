@@ -30,16 +30,20 @@ const carusel1 = new Slider(data);*/}
 class Slider {
     constructor(data) {
         // Проверка обязательных параметров
-        if (!data?.wrapper || !data?.prev || !data?.next) {
-            console.error("Slider Error: параметры 'wrapper', 'left' и 'right' обязательны для заполнения в передаваемом объекте.");
+        if (!data?.wrapper) {
+            console.error("Slider Error: параметр 'wrapper', 'left' и 'right' обязателeн для заполнения в передаваемом объекте.");
             return;
         };
+        this.swipe = data.swipe || false;                       // настраивать ли слайдер для свайпа
+        // если стрелки не указаны, то включаем свайп
+        if (!data?.prev && !data?.next) this.swipe = true;
+
         this.slider = document.querySelector(data.wrapper);     // сам слайдер
         this.prev = document.querySelector(data.prev);          // кнопка влево
         this.next = document.querySelector(data.next);          // кнопка вправо
         this.interval = data.interval || 0.5;                   // интервал для transition
         this.centralItem = data.centralItem - 1 || 0;           // центрировать слайдер по элементу
-        this.swipe = data.swipe || false;                       // настраивать ли слайдер для свайпа
+
 
         this.track = this.slider.firstElementChild;             // трек, который двигается внутри slider
         this.setState();                                        // функция инициализации слайдера
@@ -61,6 +65,10 @@ class Slider {
         const gap = parseFloat(styles.columnGap || styles.gap || 0);// вычисляем gap
 
         this.state.sliderStep = items[0].offsetWidth + gap;         // шаг прокрутки слайдера
+
+        // отменяет выделение содержимого (например текста) в элементах при свайпе
+        this.slider.style.userSelect = 'none';
+        this.slider.style.webkitUserSelect = 'none';
 
         // центрируем по указанному номеру элемента если нужно
         this.state.sliderStart = this.centralItem ?
@@ -98,16 +106,22 @@ class Slider {
 
 
     setControl() {
-        this.prevEvent = () => {
-            if (this.slider.offsetWidth !== this.state.sliderWidth) this.setState();
-            this.moveItems('prev');
-        };
-        this.nextEvent = () => {
-            if (this.slider.offsetWidth !== this.state.sliderWidth) this.setState();
-            this.moveItems('next');
-        };
-        this.prev.addEventListener('click', this.prevEvent);
-        this.next.addEventListener('click', this.nextEvent);
+        if (this.prev) {
+            this.prevEvent = () => {
+                if (this.slider.offsetWidth !== this.state.sliderWidth) this.setState();
+                this.moveItems('prev');
+            };
+            this.prev.addEventListener('click', this.prevEvent);
+        }
+
+        if (this.next) {
+            this.nextEvent = () => {
+                if (this.slider.offsetWidth !== this.state.sliderWidth) this.setState();
+                this.moveItems('next');
+            };
+            this.next.addEventListener('click', this.nextEvent);
+        }
+
 
         if (this.swipe) {
             this.swipeThreshold = 50;
@@ -123,9 +137,8 @@ class Slider {
 
                 const diff = this.startX - e.clientX;
                 this.isDragging = false;
-                console.log(diff, this.swipeThreshold);
+
                 if (Math.abs(diff) > this.swipeThreshold) {
-                    console.log(diff);
                     diff > 0 ? this.moveItems('prev') : this.moveItems('next');
                 }
             });
