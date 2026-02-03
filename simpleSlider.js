@@ -10,6 +10,15 @@
         </div>
 </div> */}
 
+// Структура блока с точками
+{/*    <div class="gallery-dot">
+        <span></span>
+        <span></span>
+        <span class="dot-active"></span>
+        <span></span>
+        <span></span>
+    </div> */}
+
 // Пример вызова:
 
 {/*import Slider from './simpleSlider';
@@ -22,7 +31,13 @@ const data = {
     // только при фиксированной ширине элемента можно центрировать слайдер по номеру 
     centralItem: 3, 
     // если хотим организовать свайп слайдера
-    swipe: true,               
+    swipe: true,    
+    // если есть сверстанные точки 
+    dots: {
+            panelClass: 'gallery-dot',  // обертка точек
+            activClass: 'dot-active'    // активный класс точки
+        }
+          
 }
 
 const carusel1 = new Slider(data);*/}
@@ -43,6 +58,7 @@ class Slider {
         this.next = document.querySelector(data.next);          // кнопка вправо
         this.interval = data.interval || 0.5;                   // интервал для transition
         this.centralItem = data.centralItem - 1 || 0;           // центрировать слайдер по элементу
+        if (data?.dots) this.dots = data.dots || null;          // если предусмотрены точки в слайдере
 
 
         this.track = this.slider.firstElementChild;             // трек, который двигается внутри slider
@@ -53,11 +69,15 @@ class Slider {
 
     state = {
         sliderWidth: 0,              // ширина slider
+        sliderCount: 0,              // количество элементов карусели (для точек)
         sliderStep: 0,               // на какую величину будем "двигать" track
-        sliderStart: 0               // начальное положение track
+        sliderStart: 0,              // начальное положение track
+        sliderPoint: 0               // текущий активный слайд (для точек)
     }
 
     setState() {
+        this.state.sliderCount = this.track.children.length;
+
         this.state.sliderWidth = this.slider.offsetWidth;
 
         const items = this.track.children;                          // сохраняет элементы слайдера
@@ -75,6 +95,23 @@ class Slider {
             ((items[0].offsetWidth + gap) * this.centralItem) - (this.state.sliderWidth / 2 - items[0].offsetWidth / 2) : 0;
 
         this.track.style.transform = `translateX(-${this.state.sliderStart}px)`;
+
+        // когда есть точки
+        if (this.dots) {
+            this.dotItems = document.querySelector(`.${this.dots.panelClass}`).children;
+            this.state.sliderPoint = this.centralItem;
+            this.setDot( this.state.sliderPoint);
+        }
+    }
+
+    setDot(num) {
+        [...this.dotItems].forEach((item, i) => {
+            if (i === num) {
+                item.classList.add(this.dots.activeClass);
+            } else {
+                item.classList.remove(this.dots.activeClass);
+            }
+        });
     }
 
     moveItems(direct) {
@@ -91,6 +128,7 @@ class Slider {
                 this.track.style.transform = `translateX(-${this.state.sliderStart}px)`;
                 this.isAnimating = false;
             }, this.interval * 1000);
+            this.state.sliderPoint++;
         } else {
             this.track.style.transition = 'none';
             this.track.prepend(this.track.lastElementChild);
@@ -101,7 +139,16 @@ class Slider {
             setTimeout(() => {
                 this.isAnimating = false;
             }, this.interval * 1000);
+            this.state.sliderPoint--;
         }
+
+        if (this.state.sliderPoint < 0) {
+            this.state.sliderPoint = this.state.sliderCount -1;
+        } else
+        if (this.state.sliderPoint >= this.state.sliderCount) {
+            this.state.sliderPoint = 0;
+        }
+        if (this.dots) this.setDot(this.state.sliderPoint);
     };
 
 
