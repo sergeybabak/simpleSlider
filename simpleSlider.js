@@ -100,7 +100,7 @@ class Slider {
         if (this.dots) {
             this.dotItems = document.querySelector(`.${this.dots.panelClass}`).children;
             this.state.sliderPoint = this.centralItem;
-            this.setDot( this.state.sliderPoint);
+            this.setDot(this.state.sliderPoint);
         }
     }
 
@@ -120,15 +120,23 @@ class Slider {
         this.isAnimating = true;
 
         if (direct === 'prev') {
+            // 1. Создаем клон первого элемента
+            const clone = this.track.firstElementChild.cloneNode(true);
+            // 2. Добавляем его в конец, чтобы при сдвиге там не было пустоты
+            this.track.append(clone);
+
             this.track.style.transition = `transform ${this.interval}s ease`;
             this.track.style.transform = `translateX(-${this.state.sliderStep + this.state.sliderStart}px)`;
             setTimeout(() => {
                 this.track.style.transition = 'none';
+                // 4. Удаляем клон
+                clone.remove();
                 this.track.append(this.track.firstElementChild);
                 this.track.style.transform = `translateX(-${this.state.sliderStart}px)`;
                 this.isAnimating = false;
             }, this.interval * 1000);
-            this.state.sliderPoint++;
+
+            this.state.sliderPoint++;   // для точек
         } else {
             this.track.style.transition = 'none';
             this.track.prepend(this.track.lastElementChild);
@@ -139,15 +147,16 @@ class Slider {
             setTimeout(() => {
                 this.isAnimating = false;
             }, this.interval * 1000);
-            this.state.sliderPoint--;
+
+            this.state.sliderPoint--;   // для точек
         }
 
         if (this.state.sliderPoint < 0) {
-            this.state.sliderPoint = this.state.sliderCount -1;
+            this.state.sliderPoint = this.state.sliderCount - 1;
         } else
-        if (this.state.sliderPoint >= this.state.sliderCount) {
-            this.state.sliderPoint = 0;
-        }
+            if (this.state.sliderPoint >= this.state.sliderCount) {
+                this.state.sliderPoint = 0;
+            }
         if (this.dots) this.setDot(this.state.sliderPoint);
     };
 
